@@ -907,7 +907,90 @@ For further details on TanStack Query, refer to the official [documentation](htt
 ## 003 First project Blog-em Ipsum
 ![alt text](image-6.png)
 ## 004 Adding a Query Client and Provider
+To work with **TanStack Query v5** (formerly React Query) in a React application, you need to first configure a **Query Client** and wrap your app with the **Query Client Provider**. The Query Client is the central part of TanStack Query responsible for managing caching, background updates, and synchronization of data fetched from APIs. The **QueryClientProvider** wraps your app and allows any component within the app to use TanStack Query features like `useQuery`, `useMutation`, and more.
 
+Let’s break down how to set this up in **TypeScript**, step by step.
+
+---
+
+### **Steps to Set Up Query Client and Provider**
+
+1. **Install TanStack Query** and necessary dependencies.
+2. **Create a Query Client** to manage all your queries and mutations.
+3. **Wrap the application in the Query Client Provider** so that all child components can access the Query Client.
+4. Use **`useQuery`** and **`useMutation`** hooks to interact with the data.
+
+---
+
+### **Step 1: Install TanStack Query**
+
+Run the following command to install **TanStack Query** for React along with **TypeScript types**.
+
+```bash
+npm install @tanstack/react-query
+npm install @types/react
+```
+
+This installs the necessary libraries to start using **TanStack Query** in your React + TypeScript project.
+
+---
+
+### **Step 2: Create a Query Client**
+
+In your application, you need to create an instance of `QueryClient`. This client is responsible for handling all queries and mutations in your application.
+
+#### **Example in TypeScript:**
+
+First, create a separate file to configure the `QueryClient`.
+
+```ts
+// src/queryClient.ts
+
+import { QueryClient } from '@tanstack/react-query';
+
+// Create a Query Client instance
+export const queryClient = new QueryClient();
+```
+
+Here, the `queryClient` is an instance of `QueryClient`. You can customize the `QueryClient` with options like cache time, stale time, etc., but for now, we’ll use the default settings.
+
+---
+
+### **Step 3: Wrap Your App with the QueryClientProvider**
+
+You need to wrap your application with the **`QueryClientProvider`**. This will provide access to the `QueryClient` to all components inside the app.
+
+#### **Example in TypeScript:**
+
+Modify your main application file (e.g., `src/App.tsx` or `src/index.tsx`).
+
+```tsx
+// src/index.tsx
+
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from './queryClient';
+import App from './App';
+
+ReactDOM.render(
+  <React.StrictMode>
+    {/* Wrap the app with QueryClientProvider */}
+    <QueryClientProvider client={queryClient}>
+      <App />
+    </QueryClientProvider>
+  </React.StrictMode>,
+  document.getElementById('root')
+);
+```
+
+#### Explanation:
+- **`QueryClientProvider`**: This component provides the `queryClient` to the entire component tree, enabling any child component to access TanStack Query’s hooks like `useQuery`, `useMutation`, etc.
+- **`client={queryClient}`**: The `QueryClientProvider` takes the `queryClient` as a prop, making it available throughout the app.
+
+---
+
+For further details, refer to the official [TanStack Query v5 documentation](https://tanstack.com/query/latest/docs/framework/react/overview).
 ## 005 Creating Queries with useQuery
 
 ## 006 Handling Loading and Error States
