@@ -1,7 +1,10 @@
 import {useState} from "react";
 import {PostDetail} from "./PostDetail.tsx";
+import {useQuery} from "@tanstack/react-query";
+import {fetchPosts} from "../api.ts";
 
 export type TPost = {
+    userId: number;
     id: number;
     title: string;
     body: string;
@@ -15,12 +18,19 @@ export function Posts() {
     const [selectedPost, setSelectedPost] = useState<TPost | null>(null);
 
     // replace with useQuery
-    const data: TPost[] = [];
+    const {data, isLoading} = useQuery({
+        queryKey: ["posts"],
+        queryFn: fetchPosts
+    })
+
+    if (isLoading) {
+        return <p>Loading...</p>
+    }
 
     return (
         <>
             <ul>
-                {data.map((post) => (
+                {data && data.map((post) => (
                     <li
                         key={post.id}
                         className="post-title"

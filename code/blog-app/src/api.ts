@@ -1,9 +1,12 @@
 import {TPost} from "./components/Posts.tsx";
 
-export async function fetchPosts(pageNum = 1) {
+export async function fetchPosts(): Promise<TPost[]> {
     const response = await fetch(
-        `https://jsonplaceholder.typicode.com/posts?_limit=10&_page=${pageNum}`
+        `https://jsonplaceholder.typicode.com/posts?_limit=10&`
     );
+    if (!response.ok) {
+        throw new Error("Failed to update post");
+    }
     return response.json();
 }
 
@@ -36,5 +39,5 @@ export async function updatePost(postId: number): Promise<TPost> {
         throw new Error("Failed to update post");
     }
 
-    return await response.json();
+    return response.json();
 }

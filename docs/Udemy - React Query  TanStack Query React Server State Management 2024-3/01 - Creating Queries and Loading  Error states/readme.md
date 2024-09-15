@@ -992,7 +992,240 @@ ReactDOM.render(
 
 For further details, refer to the official [TanStack Query v5 documentation](https://tanstack.com/query/latest/docs/framework/react/overview).
 ## 005 Creating Queries with useQuery
+Let’s break down the code snippet where you’re using **TanStack Query v5** to fetch and display a list of posts. I’ll explain each part and how **TanStack Query** integrates into the application, step by step.
 
+---
+
+### **Overview of What’s Happening**
+
+1. **Fetching Posts**: You are using the `useQuery` hook from TanStack Query to fetch posts from an API.
+2. **Displaying Posts**: The fetched posts are displayed in a list. When a user clicks on a post, the `selectedPost` state is updated, and the `PostDetail` component is shown.
+3. **Pagination (WIP)**: There are buttons to paginate through the posts (although they are currently disabled and not functional).
+4. **TypeScript**: You are using **TypeScript** to type the data being fetched and managed, which ensures type safety and better developer experience.
+
+### **Detailed Explanation of the Code**
+
+---
+
+### **1. Type Definitions and Setup**
+
+You're defining the type of the posts using the **`TPost`** interface. This ensures that the data fetched from the API adheres to this structure, providing type safety when working with the `useQuery` hook and state management.
+
+```ts
+export type TPost = {
+    userId: number;
+    id: number;
+    title: string;
+    body: string;
+};
+```
+
+- **`TPost`** describes the structure of a post. Each post has:
+  - `userId`: The ID of the user who created the post.
+  - `id`: The unique identifier for the post.
+  - `title`: The title of the post.
+  - `body`: The content of the post.
+
+### **2. Using `useState` for State Management**
+
+You are managing two pieces of local state:
+- `currentPage`: This state will eventually be used for pagination (though not functional yet).
+- `selectedPost`: This keeps track of which post is currently selected by the user.
+
+```ts
+const [currentPage, setCurrentPage] = useState(0);
+const [selectedPost, setSelectedPost] = useState<TPost | null>(null);
+```
+
+- `currentPage`: This stores the current page number. Initially, it’s set to `0` (the first page).
+- `selectedPost`: This stores the currently selected post. Initially, it’s set to `null` because no post is selected at the start.
+
+---
+
+### **3. Fetching Posts with `useQuery`**
+
+You’re using the **`useQuery`** hook from TanStack Query to fetch the list of posts from the API.
+
+```ts
+const { data, isLoading } = useQuery({
+    queryKey: ["posts"], // A unique key identifying the query
+    queryFn: fetchPosts, // The function that performs the data fetching
+});
+```
+
+#### **Explanation of `useQuery`:**
+- **`queryKey`**: The unique identifier for this query. In this case, it’s `['posts']`, which tells TanStack Query to cache and track this specific data request. You can later use this key to refetch or invalidate the query.
+- **`queryFn`**: This is the function that fetches the data. You’ve defined `fetchPosts` separately in another file (`api.ts`).
+
+Here’s what your `fetchPosts` function might look like:
+
+```ts
+// src/api.ts
+export async function fetchPosts(): Promise<TPost[]> {
+    const response = await fetch('https://jsonplaceholder.typicode.com/posts');
+    if (!response.ok) {
+        throw new Error("Failed to fetch posts");
+    }
+    return response.json();
+}
+```
+
+- **`isLoading`**: A boolean that indicates whether the query is still loading.
+- **`data`**: Once the query is successful, `data` will contain the array of posts fetched from the API.
+
+---
+
+### **4. Loading State Handling**
+
+Before displaying the data, you check if the query is still in the loading phase. If it is, you show a loading message.
+
+```ts
+if (isLoading) {
+    return <p>Loading...</p>;
+}
+```
+
+This prevents the component from trying to render data that hasn't been fetched yet.
+
+---
+
+### **5. Displaying the Posts**
+
+Once the data is fetched, you render the list of posts. Each post is displayed as a clickable `<li>` element. When the user clicks on a post, the `selectedPost` state is updated, and the `PostDetail` component is displayed.
+
+```ts
+<ul>
+    {data && data.map((post) => (
+        <li
+            key={post.id}
+            className="post-title"
+            onClick={() => setSelectedPost(post)}
+        >
+            {post.title}
+        </li>
+    ))}
+</ul>
+```
+
+- **`data.map()`**: If `data` exists, it’s an array of posts. You iterate over it and display each post's title as an `<li>` element.
+- **`onClick={() => setSelectedPost(post)}`**: When the user clicks a post, the selected post is saved in `selectedPost` using the `setSelectedPost` function.
+
+---
+
+### **6. Pagination (Currently Disabled)**
+
+You have buttons for pagination, but they are disabled at the moment. Once you implement the pagination logic, you can use the `setCurrentPage` function to change the page.
+
+```ts
+<div className="pages">
+    <button disabled onClick={() => {}}>
+        Previous page
+    </button>
+    <span>Page {currentPage + 1}</span>
+    <button disabled onClick={() => {}}>
+        Next page
+    </button>
+</div>
+```
+
+- **`disabled`**: Both buttons are disabled for now.
+- **Pagination logic**: You’ll need to modify the `fetchPosts` function and use the `currentPage` state to fetch posts for a specific page, rather than fetching all posts at once.
+
+---
+
+### **7. Displaying Post Details**
+
+If a post is selected, you render the `PostDetail` component. This component presumably shows more information about the selected post. 
+
+```ts
+{selectedPost && <PostDetail post={selectedPost} />}
+```
+
+The `PostDetail` component receives the `selectedPost` as a prop and displays it.
+
+```tsx
+// src/components/PostDetail.tsx
+import { TPost } from './Posts';
+
+interface PostDetailProps {
+  post: TPost;
+}
+
+export function PostDetail({ post }: PostDetailProps) {
+  return (
+    <div>
+      <h2>{post.title}</h2>
+      <p>{post.body}</p>
+    </div>
+  );
+}
+```
+
+- **TypeScript Props**: The `PostDetail` component expects a `post` prop of type `TPost`.
+- **Rendering Post Data**: It renders the `title` and `body` of the selected post.
+
+---
+
+### **Potential Improvements (Pagination)**
+
+To implement pagination, you would need to modify both the `fetchPosts` function and the way the component fetches the posts for a specific page.
+
+1. **Modify `fetchPosts` to accept a page number**:
+
+```ts
+export async function fetchPosts(page: number): Promise<TPost[]> {
+    const response = await fetch(`https://jsonplaceholder.typicode.com/posts?_page=${page}`);
+    if (!response.ok) {
+        throw new Error("Failed to fetch posts");
+    }
+    return response.json();
+}
+```
+
+2. **Pass the `currentPage` state to `useQuery`**:
+
+```ts
+const { data, isLoading } = useQuery({
+    queryKey: ['posts', currentPage], // Now the queryKey includes the currentPage
+    queryFn: () => fetchPosts(currentPage), // Pass the currentPage to fetchPosts
+});
+```
+
+3. **Enable Pagination Buttons**:
+
+```ts
+<div className="pages">
+    <button
+        onClick={() => setCurrentPage((old) => Math.max(old - 1, 0))}
+        disabled={currentPage === 0}
+    >
+        Previous page
+    </button>
+    <span>Page {currentPage + 1}</span>
+    <button
+        onClick={() => setCurrentPage((old) => Math.min(old + 1, maxPostPage))}
+        disabled={currentPage === maxPostPage - 1}
+    >
+        Next page
+    </button>
+</div>
+```
+
+- **Previous page**: Decreases `currentPage`, but doesn’t go below 0.
+- **Next page**: Increases `currentPage`, but doesn’t go beyond `maxPostPage - 1`.
+
+---
+
+### **Conclusion**
+
+You are using **TanStack Query v5** to efficiently fetch and cache the posts data using the `useQuery` hook, with **TypeScript** ensuring type safety throughout your code. 
+
+- **Loading/Error Handling**: TanStack Query automatically handles loading and error states, so you don’t need to manually track them.
+- **TypeScript**: You’ve used TypeScript interfaces (`TPost`) to define the structure of your data, ensuring that the fetched data is correctly typed.
+
+In the next step, you can focus on adding **pagination logic** by integrating the `currentPage` state into your `useQuery` hook and modifying the `fetchPosts` function to fetch specific pages.
+
+For more details, refer to the [TanStack Query v5 documentation](https://tanstack.com/query/latest/docs/framework/react/overview).
 ## 006 Handling Loading and Error States
 
 ## 007 React Query Dev Tools
